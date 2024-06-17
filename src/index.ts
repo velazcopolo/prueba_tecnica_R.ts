@@ -1,7 +1,7 @@
 import express from 'express';
 import { Request, Response } from "express";
 import { locations } from '../locations';
-import { compareTwoStrings } from 'string-similarity'; // Requiere instalación de la biblioteca 'string-similarity' (npm install string-similarity)
+import { compareTwoStrings } from 'string-similarity'; 
 
 
 const app = express();
@@ -72,105 +72,89 @@ app.get('/:city', (req: Request, res: Response) => {
 });
 
 
+
 app.get('/search/:searchString', (req: Request, res: Response) => {
     const searchString: string = req.params.searchString; 
-    const formattedCity = formatCityName(searchString);
-    const formattedDistricts = locations.map(location => formatCityName(location.district));
-    const foundDistrict = formattedDistricts.find(district => district === formattedCity);
-    
-    if(containsOnlyLetters(searchString)){
+    const formattedSearch = formatCityName(searchString);
 
-    const resultCity = locations.find(location => {
-        const normalizedCity = formatCityName(location.city);
-        const normalizedSearch = formatCityName(searchString);
 
-        return normalizedCity.includes(normalizedSearch) 
-    });
-    const resultDistrict = locations.find(location => {
+    if (!containsOnlyLetters(searchString)) {
+        res.status(400).send('Search string must contain only letters');
+     }
+
+
+        const resultCities = locations.filter(location => {
+            const normalizedCity = formatCityName(location.city);
+            return normalizedCity.includes(formattedSearch);
+        });
+
+        const resultDistricts = locations.filter(location => {
+            const normalizedDistrict = formatCityName(location.district);
+            return normalizedDistrict.includes(formattedSearch);
+        });
         
-        const normalizedDistrict = formatCityName(location.district);
-        const normalizedSearch = formatCityName(searchString);
-
-        return normalizedDistrict.includes(normalizedSearch);
-    });
-
-    if (resultCity ) {
-
-        const similarityRate = calculateStringSimilarity(resultCity.city, searchString);
-        res.status(200).json({
-            found: true,
-            rate: similarityRate,
-            city: resultCity.city,
-            name: resultCity.city,
-            type: 'CITY'
-        });
-     
-        
-    }
-    else if (resultDistrict ) {
-
-        const similarityRate = calculateStringSimilarity(resultDistrict.district, searchString);
-        res.status(200).json({
-            found: true,
-            rate: similarityRate,
-            city: resultDistrict.city,
-            name: resultDistrict.district,
-            type: 'DISTRICT'
-        });
-    
-    }
-
-    else{
-        res.status(200).json({
-            found: false,
-            rate: null,
-            city: null,
-            name: null,
-            type: null
-        });
-    }
-
+        if (resultCities.length > 0) {
+            const resultCity = resultCities[0];
+            const similarityRate = calculateStringSimilarity(resultCity.city, searchString);
+            console.log(similarityRate);
+            
+            res.status(200).json({
+                found: true,
+                rate: similarityRate,
+                city: resultCity.city,
+                name: resultCity.city,
+                type: 'CITY'
+            });
+            
+        } else if (resultDistricts.length > 0) {
+            const resultDistrict = resultDistricts[0];
+            const similarityRate = calculateStringSimilarity(resultDistrict.district, searchString);
+            res.status(200).json({
+                found: true,
+                rate: similarityRate,
+                city: resultDistrict.city,
+                name: resultDistrict.district,
+                type: 'DISTRICT'
+            });
+        } else {
+            res.status(200).json({
+                found: false,
+                rate: null,
+                city: null,
+                name: null,
+                type: null
+            });
         }
-        else{res.status(400).send('City must be a string');} 
-
+   
 });
 
 
 
-// Regular Expresion tambien  RegEx que verifica si solo son caracteres alfabeticos 
+
 function containsOnlyLetters(inputString: string): boolean {
     inputString = inputString.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   
-    // Regular expression to match letters, spaces, and hyphens
     const regex = /^[a-zA-ZÀ-ÿ\u00f1\u00d1\s-]+$/;
 
     return regex.test(inputString);
 }
 
-function formatCityName(district: string): string {
-    district = district.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-
-    district = district.toLowerCase();
-    
-    district = district.split(' ').map(word =>  word).join('');
-
-    district = district.charAt(0).toUpperCase() + district.slice(1)
-
-    return district
+function formatCityName(name: string): string {
+    return name.toLowerCase()
+               .normalize('NFD')
+               .replace(/[\u0300-\u036f]/g, '')
+               .replace(/[^a-z]/g, ''); 
 }
 
 
 function calculateStringSimilarity(str1: string, str2: string): number {
-  // Usar la función compareTwoStrings de string-similarity para obtener un coeficiente de similitud
+
   const similarity = compareTwoStrings(str1, str2);
 
-  // Convertir el coeficiente de similitud en porcentaje multiplicando por 100
   const similarityPercentage = similarity * 100;
 
-  // Redondear el resultado a dos decimales
   return parseFloat(similarityPercentage.toFixed(2));
 }
-
 
 
 
