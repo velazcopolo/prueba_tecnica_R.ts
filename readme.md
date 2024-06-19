@@ -1,6 +1,6 @@
 La prueba técnica consiste en desarollar una API con Node.js y TypeScript de la forma más simple posible. Adjunto un archivo llamado locations.ts que deberá importarse como una constante y que contiene datos de ciudades, distritos y número de pisos alquilados.
 
-La prueba no tiene un tiempo máximo para presentara, simplemente avísame cuando la tengas finalizada y buscamos una hora en el calendario para revisarla juntos.
+La prueba no tiene un tiempo máximo para presentar, simplemente avísame cuando la tengas finalizada y buscamos una hora en el calendario para revisarla juntos.
 
 
 
@@ -8,7 +8,7 @@ La prueba no tiene un tiempo máximo para presentara, simplemente avísame cuand
 
 
 
-### Requisiros de la API:
+### Requisitos de la API:
 
 - El código de la API debe estar contenido en un solo archivo .ts
 - El proyecto puede usar un número ilimitado de otro tipo de archivos (configuraciones, .gitignore, etc)
